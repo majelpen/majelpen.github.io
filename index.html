@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coil Reader — The beautiful way to read</title>
+<meta name="description" content="A speed reader with a sky that responds to what you're reading. Free on iOS and Android.">
+<meta property="og:title" content="Coil Reader">
+<meta property="og:description" content="The beautiful way to read.">
+<meta name="theme-color" content="#141A2E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4F2EC;
+    --ember:#E5A15C;
+    --haze:#9A98BE;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+
+  html,body{height:100%}
+  body{
+    background:#141A2E;
+    color:var(--paper);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    min-height:100svh;
+    padding:2rem 1.5rem;
+    text-align:center;
+    overflow:hidden;
+  }
+
+  /* --- the sky: stacked gradients that cross-fade on sentiment turns --- */
+  .sky{position:fixed;inset:0;z-index:-1}
+  .sky span{
+    position:absolute;inset:0;opacity:0;
+    transition:opacity 3s var(--ease);
+  }
+  .sky span.on{opacity:1}
+  .sky .s0{background:linear-gradient(#141A2E,#2E3557 58%,#4A5480)}
+  .sky .s1{background:linear-gradient(#1C2038,#46406B 52%,#8A7BA0)}
+  .sky .s2{background:linear-gradient(#22203A,#6B5578 42%,#E5A15C)}
+
+  /* --- RSVP display --- */
+  .reader{
+    height:clamp(4.5rem,14vw,7rem);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:.5rem;
+  }
+  .word{
+    font-family:"Fraunces",Georgia,serif;
+    font-weight:300;
+    font-size:clamp(2.4rem,9vw,4.5rem);
+    letter-spacing:-.02em;
+    line-height:1;
+  }
+  .word .pivot{color:var(--ember)}
+
+  .full{ /* shown instead of RSVP when motion is reduced */
+    display:none;
+    font-family:"Fraunces",Georgia,serif;
+    font-weight:300;
+    font-size:clamp(1.4rem,5vw,2.1rem);
+    line-height:1.4;
+    max-width:22ch;
+  }
+
+  .tagline{
+    font-size:.95rem;
+    color:var(--haze);
+    letter-spacing:.04em;
+    margin-bottom:2.75rem;
+  }
+
+  /* --- store buttons --- */
+  .stores{display:flex;flex-direction:column;gap:.75rem;width:min(20rem,100%)}
+  a.store{
+    display:block;padding:1rem 1.5rem;
+    border-radius:999px;
+    font-size:1rem;font-weight:500;
+    text-decoration:none;
+    transition:transform .15s var(--ease),background .2s var(--ease);
+  }
+  a.store:hover{transform:translateY(-2px)}
+  a.store:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
+  a.primary{background:var(--paper);color:#141A2E}
+  a.secondary{
+    background:rgba(244,242,236,.07);
+    color:var(--paper);
+    border:1px solid rgba(244,242,236,.22);
+  }
+  a.secondary:hover{background:rgba(244,242,236,.13)}
+
+  footer{
+    margin-top:2.5rem;font-size:.78rem;
+    color:rgba(154,152,190,.7);letter-spacing:.03em;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .reader{display:none}
+    .full{display:block;margin-bottom:1rem}
+    .sky span,a.store{transition:none}
+    a.store:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="sky" aria-hidden="true">
+  <span class="s0 on"></span><span class="s1"></span><span class="s2"></span>
+</div>
+
+<div class="reader" aria-hidden="true"><div class="word" id="word"></div></div>
+<p class="full">You are reading this one word at a time. Notice you did not move your eyes. Notice the sky.</p>
+
+<p class="tagline">The beautiful way to read.</p>
+
+<nav class="stores" id="stores"></nav>
+
+<footer>Free on iOS and Android</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ CONFIG ============ */
+  // Flip to true to send phones straight to their store instead of
+  // showing this page. Off by default: in-app browsers (TikTok's
+  // included) handle forced redirects unpredictably, and the page
+  // converts fine with the right button promoted.
+  var AUTO_REDIRECT = false;
+
+  var IOS = "https://apps.apple.com/us/app/coil-reader/id6796910059?ct=tiktok-bio";
+  var PLAY = "https://play.google.com/store/apps/details?id=com.coilreader.app" +
+             "&referrer=utm_source%3Dtiktok%26utm_medium%3Dbio%26utm_campaign%3Dlinkinbio";
+  // Apple campaign tracking also wants your Provider Token: add &pt=YOURTOKEN
+  // (App Store Connect > Analytics > Campaigns) or `ct` won't be attributed.
+
+  /* ============ PLATFORM ROUTING ============ */
+  var ua = navigator.userAgent;
+  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+              (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/.test(ua);
+
+  if (AUTO_REDIRECT && (isIOS || isAndroid)) {
+    location.replace(isIOS ? IOS : PLAY);
+    return;
+  }
+
+  var apple = { href: IOS, label: "Download on the App Store" };
+  var play  = { href: PLAY, label: "Get it on Google Play" };
+  var order = isAndroid ? [play, apple] : isIOS ? [apple, play] : [apple, play];
+
+  document.getElementById("stores").innerHTML = order.map(function(s, i){
+    return '<a class="store ' + (i === 0 ? "primary" : "secondary") +
+           '" href="' + s.href + '">' + s.label + "</a>";
+  }).join("");
+
+  /* ============ RSVP HERO ============ */
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  // Each sentence carries a sky index. The sky only morphs on a turn —
+  // same principle as the reader itself.
+  var script = [
+    { sky:0, text:"You are reading this one word at a time." },
+    { sky:1, text:"Notice you did not move your eyes." },
+    { sky:2, text:"Notice the sky." }
+  ];
+
+  var wordEl = document.getElementById("word");
+  var layers = document.querySelectorAll(".sky span");
+  var BASE = 200; // ms per word ~ 300 WPM
+  var si = 0, wi = 0, words = script[0].text.split(" ");
+
+  function pivotOf(w){
+    var n = w.replace(/[^\w]/g,"").length;
+    return n <= 1 ? 0 : n <= 5 ? 1 : n <= 9 ? 2 : 3;
+  }
+
+  function render(w){
+    var p = pivotOf(w);
+    wordEl.innerHTML = w.slice(0,p) +
+      '<span class="pivot">' + w.charAt(p) + "</span>" + w.slice(p+1);
+  }
+
+  function tick(){
+    if (wi >= words.length){
+      si = (si + 1) % script.length;
+      wi = 0;
+      words = script[si].text.split(" ");
+      layers.forEach(function(l,i){ l.classList.toggle("on", i === script[si].sky); });
+      wordEl.textContent = "";
+      return setTimeout(tick, 900); // beat between sentences
+    }
+    var w = words[wi++];
+    render(w);
+    var hold = BASE + (/[.!?]$/.test(w) ? 300 : /[,;:]$/.test(w) ? 150 : 0)
+                    + (w.length > 8 ? 60 : 0);
+    setTimeout(tick, hold);
+  }
+
+  setTimeout(tick, 600);
+})();
+</script>
+</body>
+</html>
