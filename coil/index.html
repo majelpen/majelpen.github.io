@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>coil — a quiet place to read</title>
+  <meta name="description" content="coil streams a book one word at a time under a living sky that reads along with you." />
+  <!--
+    Device-sniffing store hop for coil. Every share card's QR and printed
+    link ("majelpen.github.io/coil") lands here, so this ONE page decides
+    where a scanner ends up — which is what lets the same printed card serve
+    Android today and iPhone later without regenerating anything.
+
+    DEPLOY: copy this directory into the majelpen.github.io repo as /coil/
+    (see DEPLOY.md next to this file).
+
+    WHEN THE APP STORE LISTING EXISTS: set IOS_URL below to the real
+    https://apps.apple.com/... URL. That single edit flips iPhone scanners
+    from the "coming soon" note to the App Store. Nothing else changes.
+  -->
+  <style>
+    :root { --amber: #fbbf24; --ink: #030712; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #030712;
+      background-image:
+        radial-gradient(ellipse 70% 55% at 22% 10%, rgba(99, 102, 241, 0.30), transparent 72%),
+        radial-gradient(ellipse 60% 50% at 80% 85%, rgba(20, 60, 90, 0.35), transparent 70%),
+        radial-gradient(ellipse 40% 35% at 50% 45%, rgba(251, 191, 36, 0.07), transparent 75%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #f9fafb;
+      text-align: center;
+      padding: 2rem;
+    }
+    .card { max-width: 26rem; }
+    .mark { width: 96px; height: 96px; border-radius: 22px; margin: 0 auto 1.6rem; display: block; }
+    h1 {
+      font-size: 3.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--amber);
+      margin-bottom: 0.6rem;
+    }
+    .tagline { font-size: 1.05rem; color: rgba(249, 250, 252, 0.72); line-height: 1.6; margin-bottom: 2.2rem; font-style: italic; }
+    .cta {
+      display: inline-block;
+      background: var(--amber);
+      color: var(--ink);
+      font-family: -apple-system, system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.9rem 2.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 4px 24px rgba(251, 191, 36, 0.35);
+    }
+    .note { margin-top: 1.4rem; font-family: -apple-system, system-ui, sans-serif; font-size: 0.85rem; color: rgba(249, 250, 252, 0.45); line-height: 1.5; }
+    .hidden { display: none; }
+
+    /* ── The demo ────────────────────────────────────────────────────────
+       A real sentence streamed the way the app streams it, because the
+       pitch is the FEELING of being read to and that cannot be described
+       in a paragraph — the same reasoning as DemoIntro in the app itself.
+       Deliberately self-contained: DEPLOY.md copies one HTML file and one
+       icon, so no build step, no fonts fetched, no network. */
+    .demo {
+      position: relative;
+      margin: 0 auto 2rem;
+      max-width: 24rem;
+      height: 8.2rem;
+      border-radius: 18px;
+      border: 1px solid rgba(249, 250, 252, 0.10);
+      background: rgba(255, 255, 255, 0.035);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* The sky. Two slow drifting fields — the app's atmosphere reacts to the
+       sentiment of what you are reading; this is a still of that idea. */
+    .demo::before {
+      content: '';
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(ellipse 50% 40% at 30% 40%, rgba(56, 130, 190, 0.42), transparent 70%),
+        radial-gradient(ellipse 45% 38% at 72% 62%, rgba(99, 102, 241, 0.34), transparent 72%);
+      animation: drift 26s ease-in-out infinite alternate;
+    }
+    @keyframes drift {
+      from { transform: translate3d(-4%, -2%, 0) scale(1.05); }
+      to   { transform: translate3d(5%, 3%, 0) scale(1.18); }
+    }
+    /* Fixed-centre layout: the recognition point is PINNED and the word grows
+       either side of it, which is the whole mechanism. Three slots, and the
+       middle one never moves. */
+    .rsvp {
+      position: relative;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      width: 100%;
+      font-size: clamp(1.5rem, 7vw, 2.1rem);
+      letter-spacing: 0.01em;
+      white-space: pre;
+    }
+    /* Only the three SLOTS are blocks. A blanket rule here stacks the
+       context spans nested inside them onto their own lines. */
+    .r-left  { flex: 1 1 0; text-align: right; overflow: hidden; }
+    .r-right { flex: 1 1 0; text-align: left; overflow: hidden; }
+    .r-orp   { flex: 0 0 auto; color: var(--amber); }
+    /* No guide marks above or below the highlighted letter, anywhere, ever —
+       that treatment is another product's trade dress. The amber letter is
+       the anchor and the only anchor. */
+    .r-ctx { opacity: 0.30; font-size: 0.62em; }
+    .demo-caption {
+      position: absolute;
+      bottom: 0.55rem;
+      left: 0;
+      right: 0;
+      font-family: -apple-system, system-ui, sans-serif;
+      font-size: 0.66rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: rgba(249, 250, 252, 0.28);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .demo::before { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="mark" src="icon.png" alt="" />
+    <h1>coil</h1>
+    <p class="tagline">A quiet place to read at the end of the day. One word at a time, under a sky that reads along with you.</p>
+    <div class="demo" aria-hidden="true">
+      <div class="rsvp">
+        <span class="r-left"><span class="r-ctx" id="ctx-l"></span><span id="w-left"></span></span><span class="r-orp" id="w-orp"></span><span class="r-right"><span id="w-right"></span><span class="r-ctx" id="ctx-r"></span></span>
+      </div>
+      <div class="demo-caption">Moby-Dick · 320 words a minute</div>
+    </div>
+    <a id="cta" class="cta" href="https://play.google.com/store/apps/details?id=com.coilreader.app">Get it on Google Play</a>
+    <p id="ios-note" class="note hidden">coil for iPhone is on its way.<br />For now it lives on Android — the link above opens Google Play.</p>
+  </div>
+  <script>
+    // ── Demo loop ────────────────────────────────────────────────────────
+    // Melville, public domain — a real opening sentence rather than a
+    // description of one. Runs only on the surfaces that actually see this
+    // page: Android and iPhone scanners are redirected or shown the note
+    // below, so this is desktop's to enjoy and costs a phone nothing.
+    (function () {
+      var WORDS = ('Call me Ishmael. Some years ago—never mind how long precisely—having little or no money '
+        + 'in my purse, and nothing particular to interest me on shore, I thought I would sail about a '
+        + 'little and see the watery part of the world.').split(/\s+/);
+      var MS = 60000 / 320; // the caption has to be true
+      var el = {
+        l: document.getElementById('w-left'), o: document.getElementById('w-orp'),
+        r: document.getElementById('w-right'), cl: document.getElementById('ctx-l'),
+        cr: document.getElementById('ctx-r')
+      };
+      if (!el.o) return;
+      // Optimal Recognition Point: not the middle. The eye lands slightly
+      // left of centre, and pinning THAT character is what removes the
+      // saccade — the same rule as src/utils/orpCalculator.js.
+      function orpIndex(w) {
+        var core = w.replace(/[^\p{L}\p{N}]/gu, '').length || w.length;
+        if (core <= 1) return 0;
+        if (core <= 5) return 1;
+        if (core <= 9) return 2;
+        return 3;
+      }
+      var i = 0;
+      function step() {
+        var w = WORDS[i];
+        var k = orpIndex(w);
+        el.l.textContent = w.slice(0, k);
+        el.o.textContent = w[k] || '';
+        el.r.textContent = w.slice(k + 1);
+        el.cl.textContent = (WORDS[i - 1] ? WORDS[i - 1] + ' ' : '');
+        el.cr.textContent = (WORDS[i + 1] ? ' ' + WORDS[i + 1] : '');
+        // Longer words and sentence ends hold — flat timing reads as a
+        // machine, and the app's whole pacing model is that punctuation is
+        // where a reader breathes.
+        var hold = MS * (1 + Math.max(0, w.length - 6) * 0.045)
+          * (/[.,;:—]$/.test(w) ? 2.2 : 1);
+        i = (i + 1) % WORDS.length;
+        setTimeout(step, i === 0 ? 1600 : hold);
+      }
+      step();
+    })();
+
+    var PLAY_URL = 'https://play.google.com/store/apps/details?id=com.coilreader.app';
+    var IOS_URL = ''; // <-- set to the App Store URL when the listing exists
+
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS masquerades as Mac
+    var isAndroid = /Android/i.test(ua);
+
+    if (isIOS && IOS_URL) {
+      location.replace(IOS_URL);
+    } else if (isIOS) {
+      // No App Store listing yet: stay on the page, say so honestly.
+      document.getElementById('ios-note').classList.remove('hidden');
+    } else if (isAndroid) {
+      // Straight through to Play — a scanner on Android never needs this page.
+      location.replace(PLAY_URL);
+    }
+    // Desktop and everything else: show the landing with the Play button.
+  </script>
+</body>
+</html>
