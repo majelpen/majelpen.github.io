@@ -14,9 +14,10 @@
     DEPLOY: copy this directory into the majelpen.github.io repo as /coil/
     (see DEPLOY.md next to this file).
 
-    WHEN THE APP STORE LISTING EXISTS: set IOS_URL below to the real
-    https://apps.apple.com/... URL. That single edit flips iPhone scanners
-    from the "coming soon" note to the App Store. Nothing else changes.
+    IOS_URL and PLAY_URL below are the only two destinations. Each drives
+    both its own button and its platform's redirect, so the button a visitor
+    sees and the store a scanner lands in can never disagree. Leaving IOS_URL
+    empty degrades to an inert "coming soon" pill rather than a dead link.
   -->
   <style>
     :root { --amber: #fbbf24; --ink: #030712; }
@@ -58,8 +59,36 @@
       text-decoration: none;
       box-shadow: 0 4px 24px rgba(251, 191, 36, 0.35);
     }
+    /* Two stores, stacked rather than side by side: at 26rem the card is
+       narrower than two pills, and a row that wraps on a phone reads as a
+       mistake. Equal widths so neither store looks like an afterthought. */
+    /* The row carries the width and both pills fill it, rather than each
+       sizing to its own label — "Download on the App Store" is 42px longer
+       than "Get it on Google Play", and two nearly-but-not-quite equal pills
+       read as a mistake where two identical ones read as a pair. */
+    .cta-row {
+      display: flex; flex-direction: column; align-items: stretch;
+      gap: 0.7rem; width: min(18.5rem, 100%); margin: 0 auto;
+    }
+    .cta-row .cta { width: 100%; padding-left: 1rem; padding-right: 1rem; }
+    /* The App Store pill is deliberately NOT amber. One primary action stays
+       primary; a second identical pill would make the pair read as a choice
+       the visitor has to weigh rather than "whichever phone you carry". */
+    .cta.secondary {
+      background: rgba(249, 250, 252, 0.07);
+      color: #f9fafb;
+      border: 1px solid rgba(249, 250, 252, 0.22);
+      box-shadow: none;
+    }
+    /* No listing yet: it must not look clickable, and must say why. */
+    .cta.pending {
+      background: rgba(249, 250, 252, 0.03);
+      color: rgba(249, 250, 252, 0.38);
+      border-color: rgba(249, 250, 252, 0.10);
+      cursor: default;
+      pointer-events: none;
+    }
     .note { margin-top: 1.4rem; font-family: -apple-system, system-ui, sans-serif; font-size: 0.85rem; color: rgba(249, 250, 252, 0.45); line-height: 1.5; }
-    .hidden { display: none; }
 
     /* ── The demo ────────────────────────────────────────────────────────
        A real sentence streamed the way the app streams it, because the
@@ -144,8 +173,10 @@
       </div>
       <div class="demo-caption">Moby-Dick · 320 words a minute</div>
     </div>
-    <a id="cta" class="cta" href="https://play.google.com/store/apps/details?id=com.coilreader.app">Get it on Google Play</a>
-    <p id="ios-note" class="note hidden">coil for iPhone is on its way.<br />For now it lives on Android — the link above opens Google Play.</p>
+    <div class="cta-row">
+      <a id="cta" class="cta" href="https://play.google.com/store/apps/details?id=com.coilreader.app">Get it on Google Play</a>
+      <a id="cta-ios" class="cta secondary">Download on the App Store</a>
+    </div>
   </div>
   <script>
     // ── Demo loop ────────────────────────────────────────────────────────
@@ -195,23 +226,34 @@
     })();
 
     var PLAY_URL = 'https://play.google.com/store/apps/details?id=com.coilreader.app';
-    var IOS_URL = ''; // <-- set to the App Store URL when the listing exists
+    var IOS_URL = 'https://apps.apple.com/us/app/coil-reader/id6796910059';
 
     var ua = navigator.userAgent || '';
     var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS masquerades as Mac
     var isAndroid = /Android/i.test(ua);
 
+    // The App Store pill is wired from IOS_URL alone, so setting that one
+    // constant is still the whole switch — it lights the button here AND
+    // starts redirecting iPhone scanners, with nothing else to remember.
+    // Until it is set the pill is inert and says so, because a button that
+    // goes nowhere costs more trust than an absent one.
+    var iosBtn = document.getElementById('cta-ios');
+    if (IOS_URL) {
+      iosBtn.href = IOS_URL;
+    } else {
+      iosBtn.classList.add('pending');
+      iosBtn.textContent = 'App Store — coming soon';
+      iosBtn.removeAttribute('href');
+    }
+
     if (isIOS && IOS_URL) {
       location.replace(IOS_URL);
-    } else if (isIOS) {
-      // No App Store listing yet: stay on the page, say so honestly.
-      document.getElementById('ios-note').classList.remove('hidden');
     } else if (isAndroid) {
       // Straight through to Play — a scanner on Android never needs this page.
       location.replace(PLAY_URL);
     }
-    // Desktop and everything else: show the landing with the Play button.
+    // Desktop and everything else: show the landing with both store buttons.
   </script>
 </body>
 </html>
