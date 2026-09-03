@@ -88,6 +88,19 @@
       cursor: default;
       pointer-events: none;
     }
+    /* Footer nav — matches the one on privacy/licences so the three pages
+       read as one site. Quiet by design: it must not compete with the store
+       buttons, which are the only thing this page is asking anyone to do. */
+    .site-nav {
+      margin-top: 2.6rem;
+      font-family: -apple-system, system-ui, sans-serif;
+      font-size: 0.82rem;
+      color: rgba(249, 250, 252, 0.35);
+    }
+    .site-nav a { color: rgba(249, 250, 252, 0.55); text-decoration: none; }
+    .site-nav a:hover { text-decoration: underline; }
+    .site-nav .sep { padding: 0 0.5rem; color: rgba(249, 250, 252, 0.18); }
+    .site-nav [aria-current] { color: rgba(249, 250, 252, 0.75); }
     .note { margin-top: 1.4rem; font-family: -apple-system, system-ui, sans-serif; font-size: 0.85rem; color: rgba(249, 250, 252, 0.45); line-height: 1.5; }
 
     /* ── The demo ────────────────────────────────────────────────────────
@@ -177,6 +190,9 @@
       <a id="cta" class="cta" href="https://play.google.com/store/apps/details?id=com.coilreader.app">Get it on Google Play</a>
       <a id="cta-ios" class="cta secondary">Download on the App Store</a>
     </div>
+    <nav class="site-nav">
+      <span aria-current="page">coil</span><span class="sep">·</span><a href="./privacy.html">Privacy</a><span class="sep">·</span><a href="./licenses.html">Licences &amp; attributions</a>
+    </nav>
   </div>
   <script>
     // ── Demo loop ────────────────────────────────────────────────────────

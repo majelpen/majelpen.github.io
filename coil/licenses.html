@@ -20,6 +20,18 @@
     th, td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid #232839; vertical-align: top; }
     th { color: #8b95ab; font-weight: 600; }
     .back { display: inline-block; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    /* Footer nav — the same three links on every page, so no page is a dead
+       end. The current page is present but not a link: a nav that lets you
+       "go" where you already are makes the set feel unrelated. */
+    .site-nav {
+      margin-top: 3rem; padding-top: 1.25rem;
+      border-top: 1px solid #232839;
+      font-size: 0.88rem; color: #7c869c;
+    }
+    .site-nav a { text-decoration: none; }
+    .site-nav a:hover { text-decoration: underline; }
+    .site-nav .sep { padding: 0 0.55rem; color: #3a4157; }
+    .site-nav [aria-current] { color: #cbd2e0; }
   </style>
 </head>
 <body>
@@ -74,14 +86,19 @@
   <h2>Services</h2>
   <ul>
     <li><a href="https://dictionaryapi.dev">Free Dictionary API</a> — word definitions.</li>
-    <li><a href="https://corsproxy.io">corsproxy.io</a> and
-      <a href="https://codetabs.com">api.codetabs.com</a> — cross-origin relay for
-      the browser version.</li>
+    <li><a href="https://corsproxy.io">corsproxy.io</a>,
+      <a href="https://codetabs.com">api.codetabs.com</a> and
+      <a href="https://allorigins.win">api.allorigins.win</a> — cross-origin relays
+      for the browser version.</li>
+    <li><a href="https://gutendex.com">gutendex.com</a> — the catalogue index behind
+      book search and browsing.</li>
     <li><a href="https://mymemory.translated.net">MyMemory Translation API</a>
       (Translated S.r.l.) — fallback in-app translation on platforms without
       Chrome's on-device Translator API (Android, iOS, Safari, Firefox).</li>
   </ul>
 
-  <p><a href="./privacy.html">Privacy policy →</a></p>
+  <nav class="site-nav">
+    <a href="./index.html">coil</a><span class="sep">·</span><a href="./privacy.html">Privacy</a><span class="sep">·</span><span aria-current="page">Licences &amp; attributions</span>
+  </nav>
 </body>
 </html>
